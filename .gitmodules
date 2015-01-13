@@ -1,0 +1,3 @@
+[submodule "developer/spotifyapp"]
+	path = developer/spotifyapp
+	url = https://github.com/linanqiu/mdl-spotifyapp.git
