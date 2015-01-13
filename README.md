@@ -22,7 +22,7 @@ For the spotify app, I used 3 APIs
 - Web API (currently encouraged by Spotify) using a 3rd party nodeJS wrapper
 - Web API, using requests totally homebrewn.
 
-A working version of the app can be found at [https://github.com/linanqiu/mdl-spotifyapp.git](https://github.com/linanqiu/mdl-spotifyapp.git)
+A working version of the app can be found at [https://enigmatic-lowlands-2198.herokuapp.com](https://enigmatic-lowlands-2198.herokuapp.com)
 
 ## Data Scientist
 
@@ -33,4 +33,3 @@ Just select the unzipped .csv file provided. You should see magic at
 [http://www.columbia.edu/~lq2137/data-scientist/index.html](http://www.columbia.edu/~lq2137/data-scientist/index.html)
 
 Cheers!
-- 
