@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<head>
+  <style>
+  .node {
+  stroke: #fff;
+  stroke-width: 1.5px;
+  }
+  .link {
+  stroke: #999;
+  stroke-opacity: .2;
+  }
+  </style>
+  <link rel="stylesheet" href="bootstrap.min.css">
+  <script src="modernizr.js"></script>
+  <script src="d3.min.js"></script>
+  <script src="papaparse.min.js"></script>
+</head>
+<body>
+  <div class="container">
+    <h1>Transaction Data Visualization</h1>
+    
+    <hr>
+    <div class="row">
+      <div class="col-md-3">
+        <form class="form-horizontal">
+          <div class="form-group">
+            <label for="datafile" class="col-sm-4 control-label">Data</label>
+            <div class="col-sm-8">
+              <input type='file' id='datafile'>
+              <p class="help-block">Select provided data file</p>
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="threshold" class="col-sm-4 control-label">Threshold</label>
+            <div class="col-sm-8">
+              <input type='text' class="form-control"  id='threshold' placeholder="500">
+            </div>
+          </div>
+        </form>
+        <p>Select the <code>data.csv</code> using the data input above. This page will then draw a graph representing various purchases that are made together.</p>
+        <p><code>Threshold</code> is the minimum number of concurrent purchases required for an edge to be drawn. <i>Set threshold to 100 to see something really cool.</i></p>
+        <p>Clicking on a node shows the items that are commonly purchased (number of transactions above threshold) with the selected node.</p>
+        <p>The table lists the <b>most important</b> items according to a <b>pagerank</b> algorithm.</p>
+        <p>Detailed explanations for this visualization can be found at the bottom of the page.</p>
+      </div>
+      <div class="col-md-9">
+        <div id="svgContainer"></div>
+      </div>
+    </div>
+    <hr>
+    <div class="row">
+      <div class="col-md-3">
+        <table id="pageranking" class="table table-condensed table-striped">
+        </table>
+      </div>
+      <div class="col-md-9">
+        <h2>Documentation</h2>
+        <h3>Question Statement</h3>
+        <p>Given a dataset of transactions (100k rows) from a large retailer, find groups of items that are frequently purchased together. Each row is a single transaction with a '1' denoting that item was in the transaction. Submit your findings along with any code/description of tools used to solve the problem. The dataset can be found <a href="http://bit.ly/1sCk2vd">here</a></p>
+        <h3>Data Parsing</h3>
+        <p>CSV data is parsed into a <code>JSON</code> object comprising of nodes and edges.</p>
+        <pre>
+{
+    "nodes": [{
+        "name": "item_0", "group": 1,
+        "links": {
+            "3": 311,
+            "2": 308
+        },
+        "id": "0",
+    }, {
+        "name": "item_1", "group": 1,
+        "links": {
+            "0": 276,
+            "4": 234
+        },
+        "id": "1",
+        "index": 1
+    }],
+    "links": [
+    {"source": 1, "target": 2, "value": 524}, 
+    {"source": 2, "target": 4, "value": 128}
+    ]
+}
+</pre>
+        <p>Node specific <code>links</code> of each node keeps track of the number of times each item is bought together with every other item. The overall <code>links</code> object containing sources, targets, and values for each edge is then plotted using <code>d3.js</code></p>
+        <p>Edges with value larger than the <b>threshold</b> amount will be drawn in d3. Lowering the threshold value increases the number of edges drawn, but it doesn't change the underlying data. Increasing the threshold has the reverse effect. For example, having a threshold of 500 means that a link will be drawn between item_x and item_y only if item_x and item_y are bought together in more than 500 transactions. The thickness of the edge is proportional to the number of transactions (or the value of the edge)</p>
+        <h3>Bundled Items</h3>
+        <p>The very simple visualization above allows us to see which items are commonly bought together. To further illustrate this concept, <b>clicking on a node shows the items that are commonly bought with the item</b>. For example, when the threshold is 500, clicking on item_x will show item_a, item_b, item_c. This means that item_a, item_b, and item_c appeared together with item_x on more than 500 transactions.</p>
+        <h3>Important Items (PageRank)</h3>
+        <p>This leads us to a related question: suppose I buy item_a. item_b is commonly bought together with item_a, and that can be shown in the basic visualization. However, I also know that item_c, which may not be commonly bought with item_a, is instead often bundled with item_b. I may be tempted to do a "2nd degree" extension outwards. We may increase this analysis to more depths. Then, <b>we want to find out which items are important</b> in the sense that they are the ones that commonly end up in the basket given such traversal.</p>
+        <p>This problem can be solved by applying <b>PageRank</b>. We construct a 2D matrix of n by n elements, where n is the number of items. The value for each element (say <code>matrix[x][y]</code>) is the number of transactions that item_x and item_y both appear. Then we use the iterative method (over 20 iterations, which is more than enough usually) to allow the eigenvalues to converge. We finally use the eigenvalues to rank each of the items.</p>
+        <p>We find that several items are indeed way more "important" than others. Again, importance in this context means that if we keep buying related items (eg. go from item_a, to item_b which is often bundled with item_a, to item_c which may be bundled with item_b, etc.), the items at the top of the ranking will very likely be in the basket.</p>
+        <h3>Tools Used</h3>
+        <p>Visualization done using <code>d3.js</code>, code inspired by the d3 force layout example.</p>
+        <p>CSV parsing done using <code>PapaParse.js</code>, great for streaming large CSV files.</p>
+        <p>Standard packages include <code>jquery.js</code>. <code>modernizr.js</code> used for SVG and d3 polyfills.</p>
+        <p>Made pretty fast using <code>bootstrap</code></p>
+      </div>
+    </div>
+    <hr>
+    <footer>
+      <div class="row">
+        <div class="col-md-12">
+          <p>Copyright &copy; Linan Qiu 2015</p>
+          <p><b>GitHub: </b><a href="https://www.github.com/linanqiu">github.com/linanqiu</a></p>
+          <p><b>Email: </b><a href="lq2137@columbia.edu">lq2137@columbia.edu</a></p>
+          <p>
+          Permission is hereby granted, free of charge, to any person obtaining a copy
+          of this software and associated documentation files (the "Software"), to deal
+          in the Software without restriction, including without limitation the rights
+          to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+          copies of the Software, and to permit persons to whom the Software is
+          furnished to do so, subject to the following conditions:
+          </p>
+          <p>
+          The above copyright notice and this permission notice shall be included in
+          all copies or substantial portions of the Software.
+          </p>
+          <p>
+          THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+          IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+          FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+          AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+          LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+          OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+          THE SOFTWARE.
+          </p>
+        </div>
+      </div>
+    </footer>
+  </div>
+  <script src="jquery-2.1.3.min.js"></script>
+  <script src="main.js"></script>
+  <script src="bootstrap.min.js"></script>
+</body>
